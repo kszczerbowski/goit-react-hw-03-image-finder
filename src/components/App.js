@@ -19,37 +19,56 @@ export class App extends Component {
   };
 
   fetchImages = async () => {
-    this.state.pageNumber++;
-    this.setState({ isLoading: true });
-    const searchParams = new URLSearchParams({
-      key: '31853975-bc1b1ba443a9213885c0622f6',
-      q: this.state.query,
-      image_type: 'photo',
-      orientation: 'horizontal',
-      safesearch: true,
-      page: this.state.pageNumber,
-      per_page: 12,
-    });
-    const response = await axios.get(
-      `https://pixabay.com/api/?${searchParams}`
+    this.setState(
+      () => {
+        return {
+          pageNumber: this.state.pageNumber + 1,
+          isLoading: true,
+        };
+      },
+      async () => {
+        const searchParams = new URLSearchParams({
+          key: '31853975-bc1b1ba443a9213885c0622f6',
+          q: this.state.query,
+          image_type: 'photo',
+          orientation: 'horizontal',
+          safesearch: true,
+          page: this.state.pageNumber,
+          per_page: 12,
+        });
+        const response = await axios.get(
+          `https://pixabay.com/api/?${searchParams}`
+        );
+        const foundImages = response.data.hits;
+        this.setState({
+          isLoading: false,
+          images:
+            this.state.query === ''
+              ? []
+              : [...this.state.images, ...foundImages],
+        });
+      }
     );
-    const foundImages = response.data.hits;
-    this.setState({
-      isLoading: false,
-      images:
-        this.state.query === '' ? [] : [...this.state.images, ...foundImages],
-    });
   };
 
   handleSearchImage = async event => {
     event.preventDefault();
     const form = event.target;
-    await this.setState({ query: form.elements.imageSearch.value, images: [] });
-    if (this.state.query === '') {
-      this.setState({ pageNumber: 0 });
-      return;
-    }
-    this.fetchImages();
+    this.setState(
+      () => {
+        return {
+          query: form.elements.imageSearch.value,
+          images: [],
+        };
+      },
+      () => {
+        if (this.state.query === '') {
+          this.setState({ pageNumber: 0 });
+          return;
+        }
+        this.fetchImages();
+      }
+    );
   };
 
   handleImageClick = largeImage => {
